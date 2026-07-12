@@ -1,0 +1,80 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trt_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: trt_user
+      POSTGRES_PASSWORD: trt_secret
+      POSTGRES_DB: trt_clinic
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U trt_user -d trt_clinic']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: trt_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@clinic.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: trt_app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: super-secret-nextauth-key-change-in-prod
+      TWILIO_MOCK: 'true'
+      TWILIO_ACCOUNT_SID: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      TWILIO_AUTH_TOKEN: your_auth_token
+      TWILIO_PHONE_NUMBER: '+15005550006'
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      STRIPE_PRICE_ID: price_placeholder
+      CRON_SECRET: cron-secret-change-in-prod
+      NODE_ENV: production
+      AUTH_TRUST_HOST: 'true'
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # One-shot: migrate + seed
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: trt_migrate
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
+    command: sh -c "npx prisma migrate deploy && npx ts-node --project tsconfig.seed.json prisma/seed.ts"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:

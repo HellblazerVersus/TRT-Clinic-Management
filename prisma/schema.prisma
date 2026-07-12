@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  hashedPassword String
+  name           String?
+  role           UserRole @default(PROVIDER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  PROVIDER
+}
+
+// ─── Patient ─────────────────────────────────────────────────────────────────
+model Patient {
+  id                     String              @id @default(cuid())
+  name                   String
+  phone                  String
+  email                  String?
+  intakeDate             DateTime            @default(now())
+  dateOfBirth            DateTime?
+  baselineLabs           Json?
+  consentSigned          Boolean             @default(false)
+  consentSignedAt        DateTime?
+  notes                  String?
+
+  // Stripe billing
+  stripeCustomerId       String?             @unique
+  stripeSubscriptionId   String?             @unique
+  subscriptionStatus     SubscriptionStatus  @default(NONE)
+  subscriptionPlan       String?
+  nextBillingDate        DateTime?
+
+  // Computed/cached alert fields (updated by cron)
+  labDueDate             DateTime?
+  alertFlags             String[]            @default([])
+
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  // Relations
+  protocols              Protocol[]
+  labResults             LabResult[]
+  rxRenewals             RxRenewal[]
+  reminderLogs           ReminderLog[]
+
+  @@index([subscriptionStatus])
+}
+
+enum SubscriptionStatus {
+  NONE
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  UNPAID
+}
+
+// ─── Protocol ────────────────────────────────────────────────────────────────
+model Protocol {
+  id             String         @id @default(cuid())
+  patientId      String
+  compound       String         // e.g. "testosterone_cypionate"
+  compoundLabel  String         // e.g. "Testosterone Cypionate 200mg/mL"
+  dose           String         // e.g. "100mg"
+  frequency      String         // e.g. "twice_weekly"
+  route          String?        // e.g. "IM injection", "subcutaneous"
+  startDate      DateTime
+  endDate        DateTime?
+  nextDoseDate   DateTime?
+  status         ProtocolStatus @default(ACTIVE)
+  prescriber     String?
+  notes          String?
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  patient        Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([nextDoseDate])
+  @@index([status])
+}
+
+enum ProtocolStatus {
+  ACTIVE
+  PAUSED
+  DISCONTINUED
+}
+
+// ─── Lab Result ──────────────────────────────────────────────────────────────
+model LabResult {
+  id             String   @id @default(cuid())
+  patientId      String
+  marker         String   // e.g. "total_T", "free_T", "hematocrit"
+  markerLabel    String   // e.g. "Total Testosterone"
+  value          Float
+  unit           String   // e.g. "ng/dL", "pg/mL", "%"
+  date           DateTime
+  flagged        Boolean  @default(false)
+  referenceMin   Float?
+  referenceMax   Float?
+  labName        String?  // e.g. "LabCorp", "Quest"
+  notes          String?
+
+  createdAt      DateTime @default(now())
+
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([patientId, marker])
+  @@index([date])
+}
+
+// ─── Rx Renewal ──────────────────────────────────────────────────────────────
+model RxRenewal {
+  id              String   @id @default(cuid())
+  patientId       String
+  compound        String
+  compoundLabel   String
+  quantity        String   // e.g. "10mL vial"
+  dispenseDate    DateTime?
+  prescriber      String
+  scheduleClass   String   @default("III") // DEA Schedule
+  deaLotNumber    String?
+  pharmacyName    String?
+  renewalDueDate  DateTime
+  status          RenewalStatus @default(PENDING)
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([renewalDueDate])
+  @@index([status])
+}
+
+enum RenewalStatus {
+  PENDING
+  DISPENSED
+  OVERDUE
+  CANCELED
+}
+
+// ─── Reminder Log ─────────────────────────────────────────────────────────────
+model ReminderLog {
+  id          String        @id @default(cuid())
+  patientId   String
+  type        ReminderType
+  channel     String        @default("sms") // "sms" | "email"
+  message     String
+  sentAt      DateTime      @default(now())
+  status      String        @default("sent") // "sent" | "failed" | "mocked"
+  error       String?
+
+  patient     Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([sentAt])
+}
+
+enum ReminderType {
+  DOSE
+  REFILL
+  LAB
+  BILLING
+}

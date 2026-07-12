@@ -1,0 +1,10 @@
+.next
+node_modules
+.env
+.env.local
+.env*.local
+*.log
+dist
+.DS_Store
+Thumbs.db
+postgres_data/

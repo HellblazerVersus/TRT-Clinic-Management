@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  :root {
+    --background: 240 10% 3%;
+    --foreground:  0 0% 95%;
+    --card:        240 6% 7%;
+    --card-foreground: 0 0% 95%;
+    --popover:     240 6% 7%;
+    --popover-foreground: 0 0% 95%;
+    --primary:     174 72% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:   240 5% 14%;
+    --secondary-foreground: 0 0% 80%;
+    --muted:       240 4% 12%;
+    --muted-foreground: 240 5% 45%;
+    --accent:      174 72% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:      240 5% 12%;
+    --input:       240 5% 12%;
+    --ring:        174 72% 40%;
+    --radius:      0.5rem;
+  }
+
+  * { @apply border-border box-border; }
+
+  html { font-feature-settings: "cv02","cv03","cv04","cv11"; }
+
+  body {
+    @apply bg-surface-0 text-white antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Thin scrollbars */
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-400 rounded-full; }
+}
+
+@layer components {
+  /* ── Layout cards ── */
+  .panel {
+    @apply bg-surface-100 border border-surface-300 rounded-xl;
+  }
+  .panel-sm {
+    @apply bg-surface-100 border border-surface-300 rounded-lg;
+  }
+
+  /* ── Badges / pills ── */
+  .pill {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide;
+  }
+
+  /* ── Buttons (Lamin-style) ── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full
+           bg-white text-surface-0 text-sm font-semibold
+           hover:bg-gray-100 transition-colors;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full
+           border border-surface-400 text-sm text-gray-300 font-medium
+           hover:border-surface-500 hover:text-white transition-colors;
+  }
+  .btn-teal {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full
+           bg-teal-500 text-white text-sm font-semibold
+           hover:bg-teal-400 transition-colors shadow-lg shadow-teal-500/20;
+  }
+
+  /* ── Section label (AGENTS / APPS style) ── */
+  .section-label {
+    @apply text-[11px] font-semibold tracking-widest uppercase text-teal-400;
+  }
+
+  /* ── Table ── */
+  .data-table thead tr {
+    @apply border-b border-surface-300;
+  }
+  .data-table th {
+    @apply px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 text-left;
+  }
+  .data-table td {
+    @apply px-5 py-3.5;
+  }
+  .data-table tbody tr {
+    @apply border-b border-surface-200/60 hover:bg-surface-200/40 transition-colors;
+  }
+
+  /* ── Alert rows ── */
+  .row-overdue { @apply bg-red-950/30 border-l-2 border-l-red-500/70; }
+  .row-warning { @apply bg-amber-950/20 border-l-2 border-l-amber-500/60; }
+
+  /* ── Skeleton ── */
+  .skeleton {
+    @apply rounded bg-gradient-to-r from-surface-200 via-surface-300 to-surface-200
+           bg-[length:200%_100%] animate-shimmer;
+  }
+
+  /* ── Stat card ── */
+  .stat-card {
+    @apply panel p-5 flex flex-col gap-1 relative overflow-hidden;
+  }
+  .stat-card::after {
+    content: '';
+    @apply absolute inset-0 bg-card-shine pointer-events-none;
+  }
+
+  /* ── Input ── */
+  .field {
+    @apply w-full px-3.5 py-2.5 rounded-lg bg-surface-200 border border-surface-400
+           text-white placeholder-gray-600 text-sm
+           focus:outline-none focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/40
+           transition-all;
+  }
+  .label {
+    @apply block text-sm font-medium text-gray-400 mb-1.5;
+  }
+}
+
+/* Radial glow background helper */
+.bg-glow {
+  background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(20,184,166,0.12), transparent 70%);
+}
