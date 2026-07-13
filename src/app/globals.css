@@ -128,3 +128,11 @@
 .bg-glow {
   background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(20,184,166,0.12), transparent 70%);
 }
+
+@layer components {
+  /* ── Glassmorphism ── */
+  .glass-panel {
+    @apply bg-surface-100/40 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
+  }
+}
+

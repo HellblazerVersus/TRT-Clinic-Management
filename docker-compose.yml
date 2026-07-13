@@ -41,15 +41,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
+      DIRECT_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: super-secret-nextauth-key-change-in-prod
-      TWILIO_MOCK: 'true'
-      TWILIO_ACCOUNT_SID: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      TWILIO_AUTH_TOKEN: your_auth_token
-      TWILIO_PHONE_NUMBER: '+15005550006'
-      STRIPE_SECRET_KEY: sk_test_placeholder
-      STRIPE_WEBHOOK_SECRET: whsec_placeholder
-      STRIPE_PRICE_ID: price_placeholder
+
       CRON_SECRET: cron-secret-change-in-prod
       NODE_ENV: production
       AUTH_TRUST_HOST: 'true'
@@ -69,7 +64,8 @@ services:
     working_dir: /app
     environment:
       DATABASE_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
-    command: sh -c "npx prisma migrate deploy && npx ts-node --project tsconfig.seed.json prisma/seed.ts"
+      DIRECT_URL: postgresql://trt_user:trt_secret@postgres:5432/trt_clinic
+    command: sh -c "npx prisma db push --accept-data-loss && npx ts-node --project tsconfig.seed.json prisma/seed.ts"
     depends_on:
       postgres:
         condition: service_healthy

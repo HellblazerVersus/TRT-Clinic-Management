@@ -5,7 +5,13 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Public routes
-  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+  if (
+    pathname === '/' || 
+    pathname === '/login' || 
+    pathname === '/signup' || 
+    pathname === '/explain' || 
+    pathname.startsWith('/api/auth')
+  ) {
     return NextResponse.next();
   }
 
@@ -16,7 +22,7 @@ export default auth((req) => {
 
   // Everything else requires auth
   if (!req.auth) {
-    const loginUrl = new URL('/login', req.url);
+    const loginUrl = new URL('/', req.url); // Redirect to landing page instead of /login
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }

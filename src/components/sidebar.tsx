@@ -5,16 +5,24 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import {
   LayoutDashboard, Users, ClipboardList, Bell, Activity,
-  LogOut, Syringe, ChevronRight
+  LogOut, Syringe, ChevronRight, LineChart, Package,
+  MessageSquare, BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { href: '/dashboard',          label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/dashboard/patients', label: 'Patients',     icon: Users },
-  { href: '/dashboard/renewals', label: 'Rx Renewals',  icon: ClipboardList },
-  { href: '/dashboard/intake',   label: 'New Intake',   icon: Syringe },
-  { href: '/dashboard/reminders',label: 'Reminders',    icon: Bell },
+  // Patient & General
+  { href: '/dashboard',          label: 'Dashboard',    icon: LayoutDashboard, allowedRoles: ['ADMIN', 'PROVIDER', 'PATIENT'] },
+  { href: '/dashboard/labs',     label: 'My Labs',      icon: LineChart,       allowedRoles: ['ADMIN', 'PROVIDER', 'PATIENT'] },
+  { href: '/dashboard/refills',  label: 'Prescriptions',icon: Package,         allowedRoles: ['ADMIN', 'PROVIDER', 'PATIENT'] },
+  { href: '/dashboard/messages', label: 'Messages',     icon: MessageSquare,   allowedRoles: ['ADMIN', 'PROVIDER', 'PATIENT'] },
+  { href: '/dashboard/resources',label: 'Resources',    icon: BookOpen,        allowedRoles: ['ADMIN', 'PROVIDER', 'PATIENT'] },
+  
+  // Admin & Provider specific
+  { href: '/dashboard/patients', label: 'Patients',     icon: Users,           allowedRoles: ['ADMIN', 'PROVIDER'] },
+  { href: '/dashboard/renewals', label: 'Rx Renewals',  icon: ClipboardList,   allowedRoles: ['ADMIN', 'PROVIDER'] },
+  { href: '/dashboard/intake',   label: 'New Intake',   icon: Syringe,         allowedRoles: ['ADMIN', 'PROVIDER'] },
+  { href: '/dashboard/reminders',label: 'Reminders',    icon: Bell,            allowedRoles: ['ADMIN', 'PROVIDER'] },
 ];
 
 export function Sidebar() {
@@ -35,7 +43,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-2.5 py-4 space-y-0.5">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {NAV.filter(nav => nav.allowedRoles.includes((session?.user as any)?.role ?? 'PATIENT')).map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
           return (
             <Link key={href} href={href}

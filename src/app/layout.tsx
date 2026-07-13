@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
+import Chatbot from '@/components/Chatbot';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -10,16 +11,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'TRT Clinic — Practice Management',
-  description: 'Hormone optimization clinic management: protocol adherence, renewal logistics, DEA Schedule III tracking.',
-  keywords: ['TRT', 'hormone optimization', 'clinic management', 'practice management'],
+  title: 'TRT Portal — Your Health Journey',
+  description: 'Manage your TRT protocols, view lab results, and learn about your health.',
+  keywords: ['TRT', 'patient portal', 'health', 'labs'],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans bg-surface-0 text-white antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Chatbot />
+        </Providers>
       </body>
     </html>
   );
