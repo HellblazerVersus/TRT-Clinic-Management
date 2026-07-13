@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { stripe, createCheckoutSession } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
